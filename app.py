@@ -1,16 +1,16 @@
 import streamlit as st
 from PIL import Image
-import google.generativeai as genai
+from groq import Groq
+import io
 
 # Page Configuration
 st.set_page_config(page_title="Pro Skincare Advisor System", layout="wide")
 
-# Initialize Google Gemini API
+# Initialize Groq Client
 try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except Exception as e:
-    st.error("Streamlit Secrets ထဲတွင် GEMINI_API_KEY ထည့်သွင်းရန် လိုအပ်ပါသည်။")
+    st.error("Streamlit Secrets ထဲတွင် GROQ_API_KEY ထည့်သွင်းရန် လိုအပ်ပါသည်။")
 
 # Session state initialization
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
@@ -45,7 +45,15 @@ if st.sidebar.button("Logout ထွက်မည်"):
     st.session_state.logged_in = False
     st.rerun()
 
-st.title("🌿 Pro Skincare & Medical Analysis System")
+st.title("🌿 Pro Skincare & Medical Analysis System (Vision AI)")
+
+# Helper function to convert image to base64 for Groq Vision
+def encode_image(image):
+    buffered = io.BytesIO()
+    image.save(buffered, format="JPEG")
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+import base64
 
 # မျက်နှာစစ်ဆေးခြင်းနှင့် အချက်အလက်များ ထည့်သွင်းခြင်း
 st.subheader("မျက်နှာအသားအရေ စစ်ဆေးမှုနှင့် လိုအပ်ချက်များ")
@@ -60,6 +68,12 @@ if uploaded_file is not None:
     if st.button("ပုံကို AI ဖြင့် စစ်ဆေးမည်"):
         with st.spinner("မျက်နှာပုံကို AI ဖြင့် သုံးသပ်နေပါပြီ... ခဏစောင့်ပါ။"):
             try:
+                # Convert image to base64 data URL
+                buffered = io.BytesIO()
+                image.save(buffered, format="JPEG")
+                img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                image_url = f"data:image/jpeg;base64,{img_base64}"
+                
                 prompt = (
                     "ဒီမျက်နှာပုံကို သေချာလေ့လာပြီး အောက်ပါအချက် (၈) ချက်ကို မြန်မာဘာသာဖြင့် အသေးစိတ် သုံးသပ်ပေးပါ-\n"
                     "၁။ ဝက်ခြံအခြေအနေ (ပေါက်ရောက်မှု အနေအထား၊ အမျိုးအစားနှင့် ပမာဏ)\n"
@@ -73,8 +87,25 @@ if uploaded_file is not None:
                     f"အသုံးပြုသူ၏ ဖြည့်စွက်ချက်: {user_note}"
                 )
                 
-                response = model.generate_content([image, prompt])
+                completion = client.chat.completions.create(
+                    model="llama-3.2-11b-vision-preview",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": image_url}
+                                },
+                            ],
+                        }
+                    ],
+                    temperature=0.4,
+                    max_tokens=2048
+                )
+                
                 st.success("စစ်ဆေးမှု ပြီးဆုံးပါပြီ!")
-                st.markdown(response.text)
+                st.markdown(completion.choices[0].message.content)
             except Exception as e:
                 st.error(f"အမှားအယွင်း ဖြစ်ပေါ်နေပါသည်: {e}")
