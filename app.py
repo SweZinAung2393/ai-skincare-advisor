@@ -58,7 +58,6 @@ if not st.session_state.logged_in:
             if st.button("Verification Code ပို့ရန်"):
                 if forgot_email:
                     st.session_state.otp_code = str(random.randint(100000, 999999))
-                    # Streamlit Secrets မှ Gmail Config ကို ယူသုံးခြင်း
                     try:
                         sender_email = st.secrets["email_config"]["SENDER_EMAIL"]
                         sender_password = st.secrets["email_config"]["SENDER_PASSWORD"]
@@ -81,7 +80,7 @@ if not st.session_state.logged_in:
                         st.success("Verification Code ကို သင့် Gmail သို့ ပို့ပြီးပါပြီ။")
                         st.rerun()
                     except Exception as e:
-                        st.error(ત(f"Email ပို့၍မရပါ (Secrets အချက်အလက် စစ်ဆေးပါ): {e}"))
+                        st.error(f"Email ပို့၍မရပါ: {e}")
                 else:
                     st.warning("ကျေးဇူးပြု၍ Gmail ထည့်ပါ။")
         else:
@@ -117,20 +116,20 @@ tabs = st.tabs([
     "၁၉. ဆရာဝန်နှင့်တိုင်ပင်ရန်", "၂၀. အချက်အလက်သိမ်းဆည်းရန်"
 ])
 
-# Feature 1: Face Analysis
+# Feature 1: Face Analysis (Fixed use_column_width to use_container_width)
 with tabs[0]:
     st.subheader("၁။ မျက်နှာအသားအရေ စစ်ဆေးမှု (မြန်မာဘာသာ)")
     uploaded_file = st.file_uploader("မျက်နှာပုံ တင်ပါ", type=["jpg", "jpeg", "png"], key="f1")
     
     if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption="တင်ထားသော ပုံ", use_column_width=True)
+        st.image(uploaded_file, caption="တင်ထားသော ပုံ", use_container_width=True)
         
         if st.button("စစ်ဆေးမှု စတင်ရန်"):
             with st.spinner("အသားအရေကို AI ဖြင့် စစ်ဆေးနေပါပြီ..."):
                 try:
+                    pil_image = Image.open(uploaded_file)
                     buffered = io.BytesIO()
-                    image.save(buffered, format="JPEG")
+                    pil_image.save(buffered, format="JPEG")
                     base64_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
                     
                     response = client.chat.completions.create(
@@ -154,7 +153,7 @@ feature_names = [
     "၂။ အသားအရေအမျိုးအစား ခွဲခြားခြင်း", "၃။ Skincare Ingredient Scanner", "၄. Skin Quiz စစ်ဆေးခြင်း",
     "၅. Skincare Routine ဖန်တီးပေးခြင်း", "၆. Product များကို နှိုင်းယှဉ်ခြင်း", "၇. ရာသီဥတုအလိုက် အကြံပြုချက်",
     "၈. အသားအရေအတွက် အစားအသောက်များ", "၉. ရေဓာတ်နှင့် အိပ်စက်ခြင်းဆိုင်ရာ အကြံပြုချက်", "၁၀. Sunscreen ရွေးချယ်ပုံ လမ်းညွှန်",
-    "၁၁. ဝက်ခြံနှင့် အမာရွတ် ကုသနည်းများ", "၁၂. အိုမင်းရင့်ရော်မှု ကာကွယ်ခြင်း", "၁၃. မျက်ကွင်းညိုခြင်း ကာကွယ်ရန်",
+    "၁၁. ဝက်ခြံနှင့် အမာရွတ် ကုသနည်းများ", "၁၂. အိုမင်းရင့်ရော်မှု ကာကွယ်ခြင်း", "၁၃. မျက်ကွင်းညိုခြင်း ကာកွယ်ရန်",
     "၁၄. AI Skincare Chatbot မေးခွန်းမေးရန်", "၁၅. ဆရာဝန်ပြရန် Medical Summary ထုတ်ပေးခြင်း", "၁၆. အချက်အလက်များကို Email ပို့ရန်",
     "၁၇. သုံးစွဲသူ၏ ကျန်းမာရေး မှတ်တမ်းများ", "၁၈. အကောင်းဆုံး Product Recommendations များ", "၁၉. ဆရာဝန်နှင့် တိုက်ရိုက်တိုင်ပင်ရန် လမ်းညွှန်", "၂၀. အချက်အလက်များ သိမ်းဆည်းရန် စနစ်"
 ]
@@ -175,4 +174,4 @@ for i in range(1, 20):
                     )
                     st.markdown(res.choices[0].message.content)
             else:
-                st.warning("ကျေးဇူးပြု၍ စာသားများ ထည့်သွင်းပါ။")    
+                st.warning("ကျေးဇူးပြု၍ စာသားများ ထည့်သွင်းပါ။")
