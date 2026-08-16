@@ -1,34 +1,26 @@
 import streamlit as st
-import base64
 from PIL import Image
-from groq import Groq
-import io
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import random
+import google.generativeai as genai
 
 # Page Configuration
 st.set_page_config(page_title="Pro Skincare Advisor System", layout="wide")
 
-# Initialize Groq Client
+# Initialize Google Gemini API
 try:
-    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-except Exception:
-    st.error("Streamlit Secrets ထဲတွင် GROQ_API_KEY ထည့်သွင်းရန် လိုအပ်ပါသည်။")
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception as e:
+    st.error("Streamlit Secrets ထဲတွင် GEMINI_API_KEY ထည့်သွင်းရန် လိုအပ်ပါသည်။")
 
 # Session state initialization
 if "logged_in" not in st.session_state: st.session_state.logged_in = False
-if "reset_sent" not in st.session_state: st.session_state.reset_sent = False
-if "otp_code" not in st.session_state: st.session_state.otp_code = ""
 
-# ----------------- LOGIN / SIGNUP / FORGOT PASSWORD SYSTEM ----------------- #
+# ----------------- LOGIN SYSTEM ----------------- #
 if not st.session_state.logged_in:
     st.title("🔐 Pro Skincare System - ဝင်ရောက်ရန်")
-    tab_login, tab_signup, tab_forgot = st.tabs(["Login", "Sign Up", "Forgot Password"])
+    tab_login, tab_signup = st.tabs(["Login", "Sign Up"])
     
     with tab_login:
-        st.subheader("အကောင့်ဝင်ရန်")
         l_username = st.text_input("Username သို့မဟုတ် Gmail", key="l_user")
         l_password = st.text_input("Password", type="password", key="l_pass")
         if st.button("Login ဝင်မည်"):
@@ -41,23 +33,10 @@ if not st.session_state.logged_in:
                 
     with tab_signup:
         st.subheader("အကောင့်အသစ်ဖွင့်ရန်")
-        s_username = st.text_input("New Username သို့မဟုတ် Gmail", key="s_user")
+        s_username = st.text_input("New Username", key="s_user")
         s_password = st.text_input("New Password", type="password", key="s_pass")
-        if st.button("အကောင့်အသစ် ဖွင့်မည်"):
-            if s_username and s_password:
-                st.success("အကောင့်အသစ် ဖွင့်ပြီးပါပြီ။ ကျေးဇူးပြု၍ Login Tab သို့သွားပြီး အကောင့်ဝင်ပါ။")
-            else:
-                st.warning("အချက်အလက်များကို အပြည့်အစုံထည့်ပါ။")
-                
-    with tab_forgot:
-        st.subheader("စကားဝှက် ပြန်လည်ရယူရန်")
-        f_email = st.text_input("သင့်၏ Gmail လိပ်စာကို ထည့်ပါ", key="f_email")
-        if st.button("Verification Code ပို့ရန်"):
-            if f_email:
-                st.success("Verification Code ကို သင့် Gmail သို့ ပို့ပြီးပါပြီ။")
-            else:
-                st.warning("ကျေးဇူးပြု၍ Gmail ထည့်ပါ။")
-                
+        if st.button("အကောင့်ဖွင့်မည်"):
+            st.success("အကောင့်ဖွင့်ပြီးပါပြီ။ Login သို့သွားပါ။")
     st.stop()
 
 # ----------------- MAIN DASHBOARD ----------------- #
@@ -66,63 +45,36 @@ if st.sidebar.button("Logout ထွက်မည်"):
     st.session_state.logged_in = False
     st.rerun()
 
-st.title("🌿 Pro Skincare & Medical Analysis System (Features ၂၀ ခု)")
+st.title("🌿 Pro Skincare & Medical Analysis System")
 
-# Features 20 Tabs
-tabs = st.tabs([
-    "၁. မျက်နှာစစ်ဆေးမှု", "၂. အသားအရေ", "၃. Ingredient", "၄. Skin Quiz", "၅. Routine", 
-    "၆. ကုန်ပစ္စည်းနှိုင်းယှဉ်", "၇. ရာသီဥတု", "၈. အစားအသောက်", "၉. ရေဓာတ်", "၁၀. နေရောင်ကာကွယ်", 
-    "၁၁. ဝက်ခြံ", "၁၂. အိုမင်းရင့်ရော်", "၁၃. အသားဖြူ", "၁၄. AI Chat", "၁၅. Medical Summary", 
-    "၁၆. Email", "၁၇. မှတ်တမ်း", "၁၈. Recommend", "၁၉. ဆရာဝန်", "၂၀. သိမ်းဆည်းရန်"
-])
+# မျက်နှာစစ်ဆေးခြင်းနှင့် အချက်အလက်များ ထည့်သွင်းခြင်း
+st.subheader("မျက်နှာအသားအရေ စစ်ဆေးမှုနှင့် လိုအပ်ချက်များ")
+uploaded_file = st.file_uploader("သင့်၏ မျက်နှာပုံကို တင်ပါ", type=["jpg", "jpeg", "png"])
 
-# Feature 1: Face Analysis
-with tabs[0]:
-    st.subheader("၁။ မျက်နှာအသားအရေ စစ်ဆေးမှု (မြန်မာဘာသာ)")
-    uploaded_file = st.file_uploader("မျက်နှာပုံ တင်ပါ", type=["jpg", "jpeg", "png"], key="f1")
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="တင်ထားသော မျက်နှာပုံ", use_container_width=True)
     
-    if uploaded_file is not None:
-        st.image(uploaded_file, caption="တင်ထားသော ပုံ", use_container_width=True)
-        user_skin_desc = st.text_input("သင့်အသားအရေနှင့် ပတ်သက်ပြီး ထပ်မံဖြည့်စွက်လိုသည်များ ရှိပါက ရေးပါ")
-        
-        if st.button("စစ်ဆေးမှု စတင်ရန်"):
-            with st.spinner("AI ဖြင့် သုံးသပ်နေပါပြီ..."):
-                try:
-                    prompt_text = f"အသုံးပြုသူ၏ အသားအရေအခြေအနေနှင့် ပတ်သက်၍ မြန်မာဘာသာဖြင့် အသေးစိတ် Skincare အကြံပြုချက်များ၊ ကုသနည်းများ ရေးပေးပါ။ ဖြည့်စွက်ချက်: {user_skin_desc}"
-                    response = client.chat.completions.create(
-                        model="llama-3.3-70b-versatile",
-                        messages=[{"role": "user", "content": prompt_text}],
-                        temperature=0.4
-                    )
-                    st.success("စစ်ဆေးမှု ပြီးဆုံးပါပြီ!")
-                    st.markdown(response.choices[0].message.content)
-                except Exception as e:
-                    st.error(f"အမှားအယွင်း ဖြစ်ပေါ်နေပါသည်: {e}")
-
-# Features 2 to 20
-feature_names = [
-    "၂။ အသားအရေအမျိုးအစား ခွဲခြားခြင်း", "၃။ Skincare Ingredient Scanner", "၄. Skin Quiz စစ်ဆေးခြင်း",
-    "၅. Skincare Routine ဖန်တီးပေးခြင်း", "၆. Product များကို နှိုင်းယှဉ်ခြင်း", "၇. ရာသီဥတုအလိုက် အကြံပြုချက်",
-    "၈. အသားအရေအတွက် အစားအသောက်များ", "၉. ရေဓာတ်နှင့် အိပ်စက်ခြင်းဆိုင်ရာ အကြံပြုချက်", "၁၀. Sunscreen ရွေးချယ်ပုံ လမ်းညွှန်",
-    "၁၁. ဝက်ခြံနှင့် အမာရွတ် ကုသနည်းများ", "၁၂. အိုမင်းရင့်ရော်မှု ကာကွယ်ခြင်း", "၁၃. မျက်ကွင်းညိုခြင်း ကာကွယ်ရန်",
-    "၁၄. AI Skincare Chatbot မေးခွန်းမေးရန်", "၁၅. ဆရာဝန်ပြရန် Medical Summary ထုတ်ပေးခြင်း", "၁၆. အချက်အလက်များကို Email ပို့ရန်",
-    "၁၇. သုံးစွဲသူ၏ ကျန်းမာရေး မှတ်တမ်းများ", "၁၈. အကောင်းဆုံး Product Recommendations များ", "၁၉. ဆရာဝန်နှင့် တိုက်ရိုက်တိုင်ပင်ရန် လမ်းညွှန်", "၂၀. အချက်အလက်များ သိမ်းဆည်းရန် စနစ်"
-]
-
-for i in range(1, 20):
-    with tabs[i]:
-        st.subheader(feature_names[i-1])
-        st.write("ဤကဏ္ဍတွင် သက်ဆိုင်ရာ Skincare နှင့် Medical အချက်အလက်များကို ဆောင်ရွက်နိုင်ပါသည်။")
-        
-        user_input = st.text_area(f"{feature_names[i-1]} အတွက် လိုအပ်သည်များကို ရေးပါ", key=f"input_{i}")
-        if st.button("AI ဖြင့် ဖန်တီးမည်", key=f"btn_{i}"):
-            if user_input:
-                with st.spinner("ဆောင်ရွက်နေပါပြီ..."):
-                    res = client.chat.completions.create(
-                        model="llama-3.3-70b-versatile",
-                        messages=[{"role": "user", "content": f"အောက်ပါအချက်အလက်အတွက် မြန်မာဘာသာဖြင့် အသေးစိတ် ရေးပေးပါ: {user_input}"}],
-                        temperature=0.4
-                    )
-                    st.markdown(res.choices[0].message.content)
-            else:
-                st.warning("ကျေးဇူးပြု၍ စာသားများ ထည့်သွင်းပါ။")
+    user_note = st.text_input("ထပ်မံဖြည့်စွက် ပြောလိုသည်များ ရှိပါက ရေးပါ")
+    
+    if st.button("ပုံကို AI ဖြင့် စစ်ဆေးမည်"):
+        with st.spinner("မျက်နှာပုံကို AI ဖြင့် သုံးသပ်နေပါပြီ... ခဏစောင့်ပါ။"):
+            try:
+                prompt = (
+                    "ဒီမျက်နှာပုံကို သေချာလေ့လာပြီး အောက်ပါအချက် (၈) ချက်ကို မြန်မာဘာသာဖြင့် အသေးစိတ် သုံးသပ်ပေးပါ-\n"
+                    "၁။ ဝက်ခြံအခြေအနေ (ပေါက်ရောက်မှု အနေအထား၊ အမျိုးအစားနှင့် ပမာဏ)\n"
+                    "၂။ ဝက်ခြံအမာရွတ်များနှင့် အသားအရေ အထစ်အဆင်း မညီညာမှုများ\n"
+                    "၃။ အမဲစက်၊ နေလောင်ကွက်နှင့် အသားအရေ ညစ်နွမ်းနေသည့် နေရာများ\n"
+                    "၄။ ချွေးပေါက်ကျယ်ခြင်း (အထူးသဖြင့် နှာခေါင်းနှင့် ပါးပြင်တစ်ဝိုက်)\n"
+                    "၅။ အသားအရေ အမျိုးအစား (ခြောက်သွေ့၊ အဆီပြန်၊ ပေါင်းစပ်) နှင့် သင့်လျော်သော ကုသနည်းများ\n"
+                    "၆။ သုံးသင့်သည့် Skincare ပစ္စည်းများ (Cleanser, Toner, Serum, Moisturizer, Sunscreen စသည်ဖြင့် သင့်လျော်သော Ingredient များနှင့်တကွ ဖော်ပြရန်)\n"
+                    "၇။ ဤ Skincare ပစ္စည်းများကို မြန်မာနိုင်ငံတွင် ဝယ်ယူရရှိနိုင်မည့်နေရာများ (Supermarket များ၊ Online Skincare Shops များ၊ Pharmacy ဆေးဆိုင်များ)\n"
+                    "၈။ အစားအသောက်နှင့် နေထိုင်မှုပုံစံ အကြံပြုချက်များ (ဝက်ခြံ၊ အမဲစက်နှင့် ချွေးပေါက်ကျယ်ခြင်းများ သက်သာစေရန် ရှောင်ရန်/ဆောင်ရန်များ)\n"
+                    f"အသုံးပြုသူ၏ ဖြည့်စွက်ချက်: {user_note}"
+                )
+                
+                response = model.generate_content([image, prompt])
+                st.success("စစ်ဆေးမှု ပြီးဆုံးပါပြီ!")
+                st.markdown(response.text)
+            except Exception as e:
+                st.error(f"အမှားအယွင်း ဖြစ်ပေါ်နေပါသည်: {e}")
