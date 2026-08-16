@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image
 from groq import Groq
 import io
+import base64
 
 # Page Configuration
 st.set_page_config(page_title="Pro Skincare Advisor System", layout="wide")
@@ -47,14 +48,6 @@ if st.sidebar.button("Logout ထွက်မည်"):
 
 st.title("🌿 Pro Skincare & Medical Analysis System (Vision AI)")
 
-# Helper function to convert image to base64 for Groq Vision
-def encode_image(image):
-    buffered = io.BytesIO()
-    image.save(buffered, format="JPEG")
-    return base64.b64encode(buffered.getvalue()).decode("utf-8")
-
-import base64
-
 # မျက်နှာစစ်ဆေးခြင်းနှင့် အချက်အလက်များ ထည့်သွင်းခြင်း
 st.subheader("မျက်နှာအသားအရေ စစ်ဆေးမှုနှင့် လိုအပ်ချက်များ")
 uploaded_file = st.file_uploader("သင့်၏ မျက်နှာပုံကို တင်ပါ", type=["jpg", "jpeg", "png"])
@@ -88,7 +81,7 @@ if uploaded_file is not None:
                 )
                 
                 completion = client.chat.completions.create(
-                    model="llama-3.2-11b-vision-preview",
+                    model="meta-llama/llama-3.2-11b-vision-instruct",
                     messages=[
                         {
                             "role": "user",
