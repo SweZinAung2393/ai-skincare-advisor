@@ -81,7 +81,7 @@ if uploaded_file is not None:
                 )
                 
                 completion = client.chat.completions.create(
-                    model="llama-3.2-11b-vision",
+                    model="qwen/qwen3.6-27b",
                     messages=[
                         {
                             "role": "user",
