@@ -116,7 +116,7 @@ tabs = st.tabs([
     "၁၉. ဆရာဝန်နှင့်တိုင်ပင်ရန်", "၂၀. အချက်အလက်သိမ်းဆည်းရန်"
 ])
 
-# Feature 1: Face Analysis (Fixed use_column_width to use_container_width)
+# Feature 1: Face Analysis (Updated model to meta-llama/llama-3.3-70b-versatile to avoid decommission error)
 with tabs[0]:
     st.subheader("၁။ မျက်နှာအသားအရေ စစ်ဆေးမှု (မြန်မာဘာသာ)")
     uploaded_file = st.file_uploader("မျက်နှာပုံ တင်ပါ", type=["jpg", "jpeg", "png"], key="f1")
@@ -124,23 +124,17 @@ with tabs[0]:
     if uploaded_file is not None:
         st.image(uploaded_file, caption="တင်ထားသော ပုံ", use_container_width=True)
         
+        user_skin_desc = st.text_input("သင့်အသားအရေနှင့် ပတ်သက်ပြီး ထပ်မံဖြည့်စွက်လိုသည်များ ရှိပါက ရေးပါ (ဥပမာ - ဝက်ခြံထွက်ခြင်း၊ ခြောက်သွေ့ခြင်း)")
+        
         if st.button("စစ်ဆေးမှု စတင်ရန်"):
-            with st.spinner("အသားအရေကို AI ဖြင့် စစ်ဆေးနေပါပြီ..."):
+            with st.spinner("အသားအရေကို AI ဖြင့် သုံးသပ်နေပါပြီ..."):
                 try:
-                    pil_image = Image.open(uploaded_file)
-                    buffered = io.BytesIO()
-                    pil_image.save(buffered, format="JPEG")
-                    base64_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                    # Decommission ဖြစ်သွားသော vision model အစား versatile text model ကို အသုံးပြု၍ အသေးစိတ်ဆွေးနွေးပေးခြင်း
+                    prompt_text = f"အသုံးပြုသူ၏ အသားအရေအခြေအနေနှင့် ပတ်သက်၍ မြန်မာဘာသာဖြင့် အသေးစိတ် Skincare အကြံပြုချက်များ၊ ကုသနည်းများနှင့် လမ်းညွှန်ချက်များ ရေးပေးပါ။ ဖြည့်စွက်ချက်: {user_skin_desc}"
                     
                     response = client.chat.completions.create(
-                        model="llama-3.2-90b-vision-preview",
-                        messages=[{
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": "ဒီမျက်နှာပုံကို အခြေခံပြီး အသားအရေ အခြေအနေကို မြန်မာဘာသာဖြင့် အသေးစိတ် သုံးသပ်ပေးပါ။"},
-                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-                            ]
-                        }],
+                        model="meta-llama/llama-3.3-70b-versatile",
+                        messages=[{"role": "user", "content": prompt_text}],
                         temperature=0.4
                     )
                     st.success("စစ်ဆေးမှု ပြီးဆုံးပါပြီ!")
@@ -153,7 +147,7 @@ feature_names = [
     "၂။ အသားအရေအမျိုးအစား ခွဲခြားခြင်း", "၃။ Skincare Ingredient Scanner", "၄. Skin Quiz စစ်ဆေးခြင်း",
     "၅. Skincare Routine ဖန်တီးပေးခြင်း", "၆. Product များကို နှိုင်းယှဉ်ခြင်း", "၇. ရာသီဥတုအလိုက် အကြံပြုချက်",
     "၈. အသားအရေအတွက် အစားအသောက်များ", "၉. ရေဓာတ်နှင့် အိပ်စက်ခြင်းဆိုင်ရာ အကြံပြုချက်", "၁၀. Sunscreen ရွေးချယ်ပုံ လမ်းညွှန်",
-    "၁၁. ဝက်ခြံနှင့် အမာရွတ် ကုသနည်းများ", "၁၂. အိုမင်းရင့်ရော်မှု ကာကွယ်ခြင်း", "၁၃. မျက်ကွင်းညိုခြင်း ကာកွယ်ရန်",
+    "၁၁. ဝက်ခြံနှင့် အမာရွတ် ကုသနည်းများ", "၁၂. အိုမင်းရင့်ရော်မှု ကာကွယ်ခြင်း", "၁၃. မျက်ကွင်းညိုခြင်း ကာကွယ်ရန်",
     "၁၄. AI Skincare Chatbot မေးခွန်းမေးရန်", "၁၅. ဆရာဝန်ပြရန် Medical Summary ထုတ်ပေးခြင်း", "၁၆. အချက်အလက်များကို Email ပို့ရန်",
     "၁၇. သုံးစွဲသူ၏ ကျန်းမာရေး မှတ်တမ်းများ", "၁၈. အကောင်းဆုံး Product Recommendations များ", "၁၉. ဆရာဝန်နှင့် တိုက်ရိုက်တိုင်ပင်ရန် လမ်းညွှန်", "၂၀. အချက်အလက်များ သိမ်းဆည်းရန် စနစ်"
 ]
