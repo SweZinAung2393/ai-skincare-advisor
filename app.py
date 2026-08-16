@@ -7,6 +7,19 @@ import base64
 # Page Configuration
 st.set_page_config(page_title="Pro Skincare Advisor System", layout="wide")
 
+# Pyidaungsu ဖောင့်ကို CSS ဖြင့် အပြည့်အစုံ သုံးရန်
+st.markdown("""
+<style>
+@font-face {
+    font-family: 'Pyidaungsu';
+    src: url('Pyidaungsu.ttf') format('truetype');
+}
+html, body, [class*="css"], .stMarkdown, p, span, div, label {
+    font-family: 'Pyidaungsu', sans-serif !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Initialize Groq Client
 try:
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
@@ -68,13 +81,13 @@ if uploaded_file is not None:
                 image_url = f"data:image/jpeg;base64,{img_base64}"
                 
                 prompt = (
-                    "ဒီမျက်နှာပုံကို သေချာလေ့လာပြီး အောက်ပါအချက် (၈) ချက်ကို မြန်မာဘာသာဖြင့် အသေးစိတ် သုံးသပ်ပေးပါ-\n"
+                    "ဒီမျက်နှာပုံကို သေချာလေ့လာပြီး အောက်ပါအချက် (၈) ချက်ကို လုံးဝ (လုံးဝ) မြန်မာဘာသာဖြင့်သာ အသေးစိတ် သုံးသပ်ပေးပါ (အင်္ဂလိပ်စာလုံး လုံးဝမသုံးဘဲ မြန်မာလိုသာ ရေးပါ)-\n"
                     "၁။ ဝက်ခြံအခြေအနေ (ပေါက်ရောက်မှု အနေအထား၊ အမျိုးအစားနှင့် ပမာဏ)\n"
                     "၂။ ဝက်ခြံအမာရွတ်များနှင့် အသားအရေ အထစ်အဆင်း မညီညာမှုများ\n"
                     "၃။ အမဲစက်၊ နေလောင်ကွက်နှင့် အသားအရေ ညစ်နွမ်းနေသည့် နေရာများ\n"
                     "၄။ ချွေးပေါက်ကျယ်ခြင်း (အထူးသဖြင့် နှာခေါင်းနှင့် ပါးပြင်တစ်ဝိုက်)\n"
                     "၅။ အသားအရေ အမျိုးအစား (ခြောက်သွေ့၊ အဆီပြန်၊ ပေါင်းစပ်) နှင့် သင့်လျော်သော ကုသနည်းများ\n"
-                    "၆။ သုံးသင့်သည့် Skincare ပစ္စည်းများ (Cleanser, Toner, Serum, Moisturizer, Sunscreen စသည်ဖြင့် သင့်လျော်သော Ingredient များနှင့်တကွ ဖော်ပြရန်)\n"
+                    "၆။ သုံးသင့်သည့် Skincare ပစ္စည်းများ (Cleanser, Toner, Serum, Moisturizer, Sunscreen စသည်ဖြင့် သင့်လျော်သော ပါဝင်ပစ္စည်းများနှင့်တကွ ဖော်ပြရန်)\n"
                     "၇။ ဤ Skincare ပစ္စည်းများကို မြန်မာနိုင်ငံတွင် ဝယ်ယူရရှိနိုင်မည့်နေရာများ (Supermarket များ၊ Online Skincare Shops များ၊ Pharmacy ဆေးဆိုင်များ)\n"
                     "၈။ အစားအသောက်နှင့် နေထိုင်မှုပုံစံ အကြံပြုချက်များ (ဝက်ခြံ၊ အမဲစက်နှင့် ချွေးပေါက်ကျယ်ခြင်းများ သက်သာစေရန် ရှောင်ရန်/ဆောင်ရန်များ)\n"
                     f"အသုံးပြုသူ၏ ဖြည့်စွက်ချက်: {user_note}"
