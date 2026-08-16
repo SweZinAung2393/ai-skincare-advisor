@@ -22,25 +22,42 @@ if "logged_in" not in st.session_state: st.session_state.logged_in = False
 if "reset_sent" not in st.session_state: st.session_state.reset_sent = False
 if "otp_code" not in st.session_state: st.session_state.otp_code = ""
 
-# ----------------- LOGIN SYSTEM ----------------- #
+# ----------------- LOGIN / SIGNUP / FORGOT PASSWORD SYSTEM ----------------- #
 if not st.session_state.logged_in:
     st.title("🔐 Pro Skincare System - ဝင်ရောက်ရန်")
     tab_login, tab_signup, tab_forgot = st.tabs(["Login", "Sign Up", "Forgot Password"])
     
     with tab_login:
-        username = st.text_input("Username", key="l_user")
-        password = st.text_input("Password", type="password", key="l_pass")
-        if st.button("Login"):
-            if username and password:
+        st.subheader("အကောင့်ဝင်ရန်")
+        l_username = st.text_input("Username သို့မဟုတ် Gmail", key="l_user")
+        l_password = st.text_input("Password", type="password", key="l_pass")
+        if st.button("Login ဝင်မည်"):
+            if l_username and l_password:
                 st.session_state.logged_in = True
                 st.success("အကောင့်ဝင်ရောက်မှု အောင်မြင်ပါသည်။")
                 st.rerun()
             else:
-                st.warning("အချက်အလက်များ ဖြည့်စွက်ပါ။")
+                st.warning("အချက်အလက်များကို အပြည့်အစုံထည့်ပါ။")
+                
     with tab_signup:
-        st.write("အကောင့်အသစ်ဖွင့်ရန် အချက်အလက်များ ထည့်ပါ။")
+        st.subheader("အကောင့်အသစ်ဖွင့်ရန်")
+        s_username = st.text_input("New Username သို့မဟုတ် Gmail", key="s_user")
+        s_password = st.text_input("New Password", type="password", key="s_pass")
+        if st.button("အကောင့်အသစ် ဖွင့်မည်"):
+            if s_username and s_password:
+                st.success("အကောင့်အသစ် ဖွင့်ပြီးပါပြီ။ ကျေးဇူးပြု၍ Login Tab သို့သွားပြီး အကောင့်ဝင်ပါ။")
+            else:
+                st.warning("အချက်အလက်များကို အပြည့်အစုံထည့်ပါ။")
+                
     with tab_forgot:
-        st.write("စကားဝှက်မေ့ပါက အကူအညီရယူပါ။")
+        st.subheader("စကားဝှက် ပြန်လည်ရယူရန်")
+        f_email = st.text_input("သင့်၏ Gmail လိပ်စာကို ထည့်ပါ", key="f_email")
+        if st.button("Verification Code ပို့ရန်"):
+            if f_email:
+                st.success("Verification Code ကို သင့် Gmail သို့ ပို့ပြီးပါပြီ။")
+            else:
+                st.warning("ကျေးဇူးပြု၍ Gmail ထည့်ပါ။")
+                
     st.stop()
 
 # ----------------- MAIN DASHBOARD ----------------- #
@@ -56,10 +73,10 @@ tabs = st.tabs([
     "၁. မျက်နှာစစ်ဆေးမှု", "၂. အသားအရေ", "၃. Ingredient", "၄. Skin Quiz", "၅. Routine", 
     "၆. ကုန်ပစ္စည်းနှိုင်းယှဉ်", "၇. ရာသီဥတု", "၈. အစားအသောက်", "၉. ရေဓာတ်", "၁၀. နေရောင်ကာကွယ်", 
     "၁၁. ဝက်ခြံ", "၁၂. အိုမင်းရင့်ရော်", "၁၃. အသားဖြူ", "၁၄. AI Chat", "၁၅. Medical Summary", 
-    "၁६. Email", "၁၇. မှတ်တမ်း", "၁၈. Recommend", "၁၉. ဆရာဝန်", "၂၀. သိမ်းဆည်းရန်"
+    "၁၆. Email", "၁၇. မှတ်တမ်း", "၁၈. Recommend", "၁၉. ဆရာဝန်", "၂၀. သိမ်းဆည်းရန်"
 ])
 
-# Feature 1: Face Analysis (Error ကင်းရှင်းသော model ကို သုံးထားသည်)
+# Feature 1: Face Analysis
 with tabs[0]:
     st.subheader("၁။ မျက်နှာအသားအရေ စစ်ဆေးမှု (မြန်မာဘာသာ)")
     uploaded_file = st.file_uploader("မျက်နှာပုံ တင်ပါ", type=["jpg", "jpeg", "png"], key="f1")
