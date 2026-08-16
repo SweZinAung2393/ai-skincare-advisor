@@ -175,4 +175,4 @@ for i in range(1, 20):
                     )
                     st.markdown(res.choices[0].message.content)
             else:
-                st.warning("ကျေးဇူးပြု၍ စာသားများ ထည့်သွင်းပါ။")
+                st.warning("ကျေးဇူးပြု၍ စာသားများ ထည့်သွင်းပါ။")    
